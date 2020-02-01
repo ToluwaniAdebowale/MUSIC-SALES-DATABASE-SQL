@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?><sqlb_project><db path="C:/Users/Adeglo/Downloads/chinook-db/chinook_db/chinook.db" foreign_keys="1" case_sensitive_like="0" temp_store="0" wal_autocheckpoint="1000" synchronous="2"/><attached/><window><current_tab id="3"/></window><tab_structure><column_width id="0" width="300"/><column_width id="1" width="0"/><column_width id="2" width="100"/><column_width id="3" width="3592"/><column_width id="4" width="0"/><expanded_item id="0" parent="1"/><expanded_item id="1" parent="1"/><expanded_item id="2" parent="1"/><expanded_item id="3" parent="1"/></tab_structure><tab_browse><current_table name="Album"/><default_encoding codec=""/><browse_table_settings><table schema="main" name="Album" show_row_id="0" encoding="" plot_x_axis="" unlock_view_pk=""><sort/><column_widths/><filter_values/><display_formats/><hidden_columns/><plot_y_axes/></table></browse_table_settings></tab_browse><tab_sql><sql name="SQL 1">SELECT cu.city city_name, sum(inv.total) totals
+FROM Invoice inv
+INNER JOIN Customer cu ON cu.CustomerId = inv.customerid
+GROUP by city_name
+ORDER by totals desc limit 1;
+
+SELECT inv.BillingCountry countries, count(il.quantity) invoices
+FROM Invoice inv
+INNER JOIN InvoiceLine il on il.invoiceid = inv.InvoiceId
+GROUP by countries
+ORDER by invoices DESC;
+
+SELECT cu.firstname ||&quot; &quot;|| cu.lastname Customers, sum(il.unitprice) money, inv.total invoices
+FROM Customer cu
+INNER JOIN Invoice inv ON inv.customerid = cu.CustomerId
+INNER JOIN InvoiceLine il ON il.invoiceid = inv.InvoiceId
+GROUP by cu.CustomerId
+ORDER by money DESC LIMIT 1;
+
+SELECT DISTINCT cu.email email, cu.firstname firstname, cu.lastname lastname, gen.name genres
+FROM Customer cu
+INNER JOIN Invoice inv ON inv.customerid = cu.CustomerId
+INNER JOIN InvoiceLine il on il.invoiceid = inv.invoiceid
+INNER JOIN Track tr ON tr.trackid = il.TrackId
+INNER JOIN Genre gen ON gen.genreid = tr.GenreId
+WHERE genres is &quot;Rock&quot;
+ORDER by email;
+
+--first try to return countries, purchase and genres
+With popularTable AS(
+  SELECT 
+	inv.BillingCountry countries, 
+    count(inv.InvoiceId) Number_of_purchases,  
+    gen.name Genres
+  FROM Invoice Inv
+  INNER JOIN InvoiceLine il ON il.invoiceid = inv.InvoiceId
+  INNER JOIN Track tr ON tr.TrackId = il.trackid
+  INNER JOIN Genre gen ON gen.genreid = tr.genreid
+  GROUP BY countries,genres
+  Order by countries, number_of_purchases DESC
+  )
+  
+ SELECT popularTable.*
+ FROM popularTable
+ 	INNER JOIN (
+	SELECT MAX(number_of_purchases) AS MaxPurchases, Countries, Genres
+	FROM popularTable
+	GROUP BY Countries
+	)secondTable
+ON popularTable.genres = secondTable.genres
+WHERE popularTable.number_of_purchases = secondTable.MaxPurchases;</sql><current_tab id="0"/></tab_sql></sqlb_project>
