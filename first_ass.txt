@@ -1,0 +1,79 @@
+1. Which city has the best customers?
+We would like to throw a promotional Music Festival in the city we made the most money. 
+Write a query that returns the 1 city that has the highest sum of invoice totals. 
+Return both the city name and the sum of all invoice totals.
+
+Ans:
+/*SELECT cu.city city_name, sum(inv.total) totals
+FROM Invoice inv
+INNER JOIN Customer cu ON cu.CustomerId = inv.customerid
+GROUP by city_name
+ORDER by totals desc limit 1;*/
+
+2. Which countries have the most Invoices?
+Use the Invoice table to determine the countries that have the most invoices. 
+Provide a table of BillingCountry and Invoices ordered by the number of invoices for each country. 
+The country with the most invoices should appear first.
+
+Ans:
+/*SELECT inv.BillingCountry countries, count(il.quantity) invoices
+FROM Invoice inv
+INNER JOIN InvoiceLine il on il.invoiceid = inv.InvoiceId
+GROUP by countries
+ORDER by invoices DESC;*/
+
+3. Who is the best customer?
+The customer who has spent the most money will be declared the best customer. 
+Build a query that returns the person who has spent the most money
+
+Ans:
+/*SELECT cu.firstname ||" "|| cu.lastname Customers, sum(il.unitprice) money, inv.total invoices
+FROM Customer cu
+INNER JOIN Invoice inv ON inv.customerid = cu.CustomerId
+INNER JOIN InvoiceLine il ON il.invoiceid = inv.InvoiceId
+GROUP by cu.CustomerId
+ORDER by money DESC LIMIT 1;*/
+
+4. Use your query to return the email, first name, last name, and Genre of all Rock Music listeners. 
+Return your list ordered alphabetically by email address starting with A.
+
+Ans:
+/*SELECT DISTINCT cu.email email, cu.firstname firstname, cu.lastname lastname, gen.name genres
+FROM Customer cu
+INNER JOIN Invoice inv ON inv.customerid = cu.CustomerId
+INNER JOIN InvoiceLine il on il.invoiceid = inv.invoiceid
+INNER JOIN Track tr ON tr.trackid = il.TrackId
+INNER JOIN Genre gen ON gen.genreid = tr.GenreId
+WHERE genres is "Rock"
+ORDER by email*/
+
+5. We want to find out the most popular music Genre for each country.
+We determine the most popular genre as the genre with the highest amount of purchases. 
+Write a query that returns each country along with the top Genre. 
+For countries where the maximum number of purchases is shared return all Genres.
+
+Ans:
+
+--first try to return countries, purchase and genres
+With popularTable AS(
+  SELECT 
+	inv.BillingCountry countries, 
+    count(inv.InvoiceId) Number_of_purchases,  
+    gen.name Genres
+  FROM Invoice Inv
+  INNER JOIN InvoiceLine il ON il.invoiceid = inv.InvoiceId
+  INNER JOIN Track tr ON tr.TrackId = il.trackid
+  INNER JOIN Genre gen ON gen.genreid = tr.genreid
+  GROUP BY countries,genres
+  Order by countries, number_of_purchases DESC
+  )
+  
+ SELECT popularTable.*
+ FROM popularTable
+ 	INNER JOIN (
+	SELECT MAX(number_of_purchases) AS MaxPurchases, Countries, Genres
+	FROM popularTable
+	GROUP BY Countries
+	)secondTable
+ON popularTable.genres = secondTable.genres
+WHERE popularTable.number_of_purchases = secondTable.MaxPurchases;
